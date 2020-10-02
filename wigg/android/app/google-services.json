@@ -1,0 +1,55 @@
+{
+  "project_info": {
+    "project_number": "872650114549",
+    "firebase_url": "https://wigg-app.firebaseio.com",
+    "project_id": "wigg-app",
+    "storage_bucket": "wigg-app.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:872650114549:android:e2ad81f5d781711892ccbc",
+        "android_client_info": {
+          "package_name": "com.ecosmob.wigg"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "872650114549-u8rre23rru71u168b3j2avm5sqn7rhb9.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.ecosmob.wigg",
+            "certificate_hash": "05343887379c3a033f15f40b26661f533c6fa6ba"
+          }
+        },
+        {
+          "client_id": "872650114549-bcu7fdhedj96dgj7tln0rj3ok2va50a7.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD6YHQiSqGZjipEGCPkOghTDE4mNq1__5M"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "872650114549-bcu7fdhedj96dgj7tln0rj3ok2va50a7.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "872650114549-hsun8jsgoordo9fb0niqbsr208utd7pi.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.ecosmob.wigg"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
