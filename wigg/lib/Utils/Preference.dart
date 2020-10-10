@@ -70,6 +70,13 @@ Future<String> getRole() async {
   return role ?? "";
 }
 
+Future<bool> isParentUser() async {
+  SharedPreferences prefs = await SharedPreferences.getInstance();
+  final isParentUser = prefs.getBool(AppStrings.isParentUser);
+  log('@@isParentUser : $isParentUser');
+  return isParentUser ?? false;
+}
+
 
 Future<int> getWarrantyExpireDays() async {
   SharedPreferences prefs = await SharedPreferences.getInstance();

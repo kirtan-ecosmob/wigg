@@ -181,6 +181,9 @@ class CommonFunction {
     pref.setInt(AppStrings.warrantyExpireDays, data.warrantyExpireDay);
     pref.setBool(AppStrings.isLogin, true);
 
+    UsersModelView.instance.userRole = data.role;
+    UsersModelView.instance.isParent = data.isParentUser;
+
     DeviceHeaders.instance.userId = data.userId.toString();
     DeviceHeaders.instance.authToken = data.authToken;
     DeviceHeaders.instance.isLogin = true;
@@ -205,23 +208,25 @@ class CommonFunction {
     int month = (date1.difference(date2).inDays % 365) ~/ 30;
     int days = date1.difference(date2).inDays;
 
-    if (year > 0){
-      return "Warranty expires in ${year} year ${month} months";
-      // if (month == 0){
-      //   return "Warranty expires in ${year} year";
-      // }else{
-      //   return "Warranty expires in ${year} year ${month} months";
-      // }
-    }else if (month > 0){
-      return "Warranty expires in ${month} months";
-    }else if (days > 0){
-      return "Warranty expires in ${days} days";
-    }else{
+
+    if (date1.isBefore(date2)){
       return "Warranty expired";
+    }else {
+      if (year > 0){
+        return "Warranty expires in ${year} year ${month} months";
+        // if (month == 0){
+        //   return "Warranty expires in ${year} year";
+        // }else{
+        //   return "Warranty expires in ${year} year ${month} months";
+        // }
+      }else if (month > 0){
+        return "Warranty expires in ${month} months";
+      }else if (days > 0){
+        return "Warranty expires in ${days} days";
+      }else{
+        return "Warranty expired";
+      }
     }
-
-    // date1.difference(date2).inDays.toString(),
-
   }
 
 // static roundUseImage(String imgUrl, double radius){
@@ -298,6 +303,8 @@ class CommonFunction {
       },
     );
   }
+
+
 
 }
 

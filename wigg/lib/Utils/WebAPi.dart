@@ -51,10 +51,15 @@ class WebApi {
 
   //Ticket
   static const String submitTicket = baseUrl + "submit/ticket";
-  static const String aboutUs = baseUrl + "page/about";
+  static const String cmsPage = baseUrl + "page/";
 
   //Setting
   static const String setNotification = baseUrl + "set/notification";
+
+  //Notification
+  static const String notificationList = baseUrl + "notification/list";
+  static const String readNotification = baseUrl + "notification/read";
+
 
 
 }

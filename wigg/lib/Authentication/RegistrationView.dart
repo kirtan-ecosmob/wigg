@@ -1,18 +1,12 @@
 import 'package:flutter/material.dart';
-// import 'package:shared_preferences/shared_preferences.dart';
 import 'package:wigg/HomeTabController.dart';
 import 'package:wigg/Utils/AppColors.dart';
 import 'package:wigg/Utils/AppImages.dart';
-import 'package:wigg/Utils/AppStrings.dart';
 import 'package:wigg/Utils/CommonFunctions.dart';
-import 'package:wigg/Utils/DeviceHeaders.dart';
 import 'package:wigg/Utils/Helper.dart';
 import 'package:toast/toast.dart';
 import 'package:wigg/Utils/OnFailure.dart';
-
-import '../Dashboard/DashboardView.dart';
 import 'LoginViewModel.dart';
-import 'Model/login_model.dart';
 
 class RegistrationView extends StatefulWidget {
   static String name = '/Registration';

@@ -96,12 +96,21 @@ class _LoginViewState extends State<LoginView> {
     });
     _googleSignIn.signInSilently();
 
-    // txtEmail.text = "kinjal.pethani@ecosmob.com";
     // txtEmail.text = "kirtan.parakhiya@ecosmob.com";
     // txtPassword.text = "Kirtan@123";
 
-    txtEmail.text = "wigg.one@yopmail.com";
-    txtPassword.text = "mSSTn9z3q1";
+    // txtEmail.text = "viewonlywigg@yopmail.com";
+    // txtPassword.text = "nzid3IkY8T";
+
+    // txtEmail.text = "fullaccesswigg@yopmail.com";
+    // txtPassword.text = "U5tjAAQf9b";
+
+    // txtEmail.text = "vieweditwigg@yopmail.com";
+    // txtPassword.text = "nFv2wVsKCx";
+
+    // txtEmail.text = "sahreonlywigg@yopmail.com";
+    // txtPassword.text = "5JMuN3nLLe";
+
   }
 
   // TODO: Google Login

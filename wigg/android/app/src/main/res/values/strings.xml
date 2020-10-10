@@ -3,4 +3,6 @@
     <string name="facebook_app_id">356457015508710</string>
     <string name="fb_login_protocol_scheme">fb356457015508710</string>
     <string name="app_name">wigg</string>
+<!--    <string name="notification_channel_id">01</string>-->
+
 </resources>

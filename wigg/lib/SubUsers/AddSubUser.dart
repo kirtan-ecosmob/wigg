@@ -36,6 +36,7 @@ class _AddSubUserViewState extends State<AddSubUserView> {
   final GlobalKey<State> _keyLoader = new GlobalKey<State>();
   TextEditingController txtName = TextEditingController();
   TextEditingController txtEmail = TextEditingController();
+  TextEditingController txtMobile = TextEditingController();
 
   TextEditingController txtRelation = TextEditingController();
 
@@ -152,6 +153,7 @@ class _AddSubUserViewState extends State<AddSubUserView> {
   _setDataForEditUser(){
     txtName.text = this.userDetails != null ? userDetails.name : "";
     txtEmail.text = this.userDetails != null ? userDetails.email : "";
+    txtMobile.text = this.userDetails != null ? userDetails.mobile : "";
     txtRelation.text = this.userDetails != null ? userDetails.relation : "";
 
     final tempPer = this.userDetails != null ? userDetails.role.replaceAll("_", " ").capitalizeFirstofEach : "";
@@ -176,6 +178,10 @@ class _AddSubUserViewState extends State<AddSubUserView> {
       Toast.show('Please enter valid email', context,
           duration: Toast.LENGTH_LONG, gravity: Toast.BOTTOM);
       return false;
+    } else if (txtMobile.text.trim().isNotEmpty && txtMobile.text.length < 8){
+      Toast.show('The Mobile Number must be between 8 and 16 digits.', context,
+          duration: Toast.LENGTH_LONG, gravity: Toast.BOTTOM);
+      return false;
     } else if (txtRelation.text.trim().isEmpty) {
       Toast.show('Please enter relation with user', context,
           duration: Toast.LENGTH_LONG, gravity: Toast.BOTTOM);
@@ -190,6 +196,9 @@ class _AddSubUserViewState extends State<AddSubUserView> {
 
     final emailTextField = CommonFunction.customTextfield(
         "Enter email", txtEmail, TextInputType.emailAddress, context);
+
+    final mobileTextField = CommonFunction.customTextfield(
+        "Enter Mobile Number", txtMobile, TextInputType.number, context, maxLength: 16);
 
     final relationTextField = CommonFunction.customTextfield(
         "Enter Relation", txtRelation, TextInputType.text, context,
@@ -248,6 +257,10 @@ class _AddSubUserViewState extends State<AddSubUserView> {
             height: 10,
           ),
           emailTextField,
+          SizedBox(
+            height: 10,
+          ),
+          mobileTextField,
           SizedBox(
             height: 10,
           ),
@@ -346,6 +359,7 @@ class _AddSubUserViewState extends State<AddSubUserView> {
                       if (_isValidate(context) == null) {
                         params["name"] = txtName.text.trim();
                         params["email"] = txtEmail.text.trim();
+                        params["mobile"] = txtMobile.text.trim();
                         params["relation"] = txtRelation.text.trim();
                         params["role"] = _permissionValue.replaceAll(" ", "_").toLowerCase();
 

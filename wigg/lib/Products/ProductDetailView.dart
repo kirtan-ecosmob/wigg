@@ -1,3 +1,6 @@
+import 'dart:async';
+
+import 'package:date_format/date_format.dart';
 import 'package:dotted_border/dotted_border.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -19,8 +22,9 @@ import 'ProductModelView.dart';
 class ProductDetailView extends StatefulWidget {
   static String name = '/ProductDetail';
 
+  bool isFromNotification = false;
   Product selectedProduct;
-  ProductDetailView({this.selectedProduct});
+  ProductDetailView({this.selectedProduct, this.isFromNotification = false});
 
   @override
   _ProductDetailViewState createState() => _ProductDetailViewState();
@@ -40,7 +44,7 @@ class _ProductDetailViewState extends State<ProductDetailView> {
   ProductDetailsData _productDetail;
   int _selectedYear = 0;
   int _selectedMonth = 0;
-  String _warrentyDuration = "";
+  String _warrantyDuration = "";
 
 
   @override
@@ -48,13 +52,14 @@ class _ProductDetailViewState extends State<ProductDetailView> {
     // TODO: implement initState
     super.initState();
 
+
     postInit(() {
       _getGroupList();
       _getCategoryList();
     });
     _getProductDetails();
 
-    _warrentyDuration = "$_selectedYear Years $_selectedMonth months";
+    _warrantyDuration = "$_selectedYear Years $_selectedMonth months";
   }
 
   // TODO: API calling
@@ -171,15 +176,15 @@ class _ProductDetailViewState extends State<ProductDetailView> {
     // _setSelectedGroupAndCategory();
     //
     //
-    final date1 = new DateFormat("yyyy-MM-dd").parse(_productDetail.expireDate);
-    final date2 = new DateFormat("yyyy-MM-dd").parse(_productDetail.purchaseDate);
+    final date1 = new DateFormat("MM-dd-yyyy").parse(_productDetail.expireDate);
+    final date2 = new DateFormat("MM-dd-yyyy").parse(_productDetail.purchaseDate);
 
     int year = date1.difference(date2).inDays ~/ 365;
     int month = (date1.difference(date2).inDays % 365) ~/ 30;
 
     _selectedYear = _arrYear[year];
     _selectedMonth = _arrMonth[month];
-    _warrentyDuration = "$_selectedYear Years $_selectedMonth months";
+    _warrantyDuration = "$_selectedYear Years $_selectedMonth months";
     //
     // if (_productDetail.images.length > 0){
     //   _productDetail.images.forEach((element) async {
@@ -230,7 +235,7 @@ class _ProductDetailViewState extends State<ProductDetailView> {
 
 
     Color getColorFromExpiry(ProductDetailsData product){
-      final expiryDate = product != null ? new DateFormat("yyyy-MM-dd").parse(product.expireDate) : DateTime.now();
+      final expiryDate = product != null ? new DateFormat("MM-dd-yyyy").parse(product.expireDate) : DateTime.now();
       final currentDate = DateTime.now();
       int remainDays = expiryDate.difference(currentDate).inDays;
       if (remainDays >= 90){
@@ -243,8 +248,8 @@ class _ProductDetailViewState extends State<ProductDetailView> {
     }
 
     double getPercentageBetweenTwoDate(ProductDetailsData product){
-      final purchaseDate = product != null ? new DateFormat("yyyy-MM-dd").parse(product.purchaseDate) : new DateFormat("yyyy-MM-dd").parse(widget.selectedProduct.purchaseDate);
-      final expiryDate =  product != null ? new DateFormat("yyyy-MM-dd").parse(product.expireDate) : new DateFormat("yyyy-MM-dd").parse(widget.selectedProduct.expiryDate);
+      final purchaseDate = product != null ? new DateFormat("MM-dd-yyyy").parse(product.purchaseDate) : new DateTime.now();
+      final expiryDate =  product != null ? new DateFormat("MM-dd-yyyy").parse(product.expireDate) : new DateTime.now();
       final currentDate = DateTime.now();
       int totalDays = expiryDate.difference(purchaseDate).inDays;
       int fromTodayRemainDays = expiryDate.difference(currentDate).inDays;
@@ -319,7 +324,7 @@ class _ProductDetailViewState extends State<ProductDetailView> {
             Text("Duration of Warranty", style: TextStyle(fontSize: 14, color: Colors.grey),),
             Expanded(
               child: Text(
-                _warrentyDuration,
+                _warrantyDuration,
                 textAlign: TextAlign.end,
                 style: TextStyle(
                   fontSize: 14,
@@ -500,7 +505,8 @@ class _ProductDetailViewState extends State<ProductDetailView> {
             Align(
               alignment: Alignment.centerLeft,
               child: Text(
-                CommonFunction.remainYearsMonthDayFromDate(widget.selectedProduct.expiryDate, "MM-dd-yyyy"),
+                // CommonFunction.remainYearsMonthDayFromDate(widget.selectedProduct.expiryDate, "MM-dd-yyyy"),
+                _productDetail == null ? "" : CommonFunction.remainYearsMonthDayFromDate(_productDetail.expireDate, "MM-dd-yyyy"),
                 style: TextStyle(fontSize: 12, color: AppColors.appLightGrayColor),
               ),
             ),
@@ -523,6 +529,7 @@ class _ProductDetailViewState extends State<ProductDetailView> {
             SizedBox(height: 20,),
             detailContainer(_productDetail == null ? "" : "${_productDetail.latitude}, ${_productDetail.longitude}", "GPS Location"),
             SizedBox(height: 20,),
+          // detailContainer(_productDetail == null ? "" : formatDate(DateFormat("yyyy-MM-dd").parse(_productDetail.purchaseDate), [mm, '-', dd ,'-', yyyy]), "Date of Purchase"),
             detailContainer(_productDetail == null ? "" : _productDetail.purchaseDate, "Date of Purchase"),
             SizedBox(height: 20,),
             durationOfWarranty(),
@@ -549,7 +556,8 @@ class _ProductDetailViewState extends State<ProductDetailView> {
       backgroundColor: AppColors.appBottleGreenColor,
       appBar: AppBar(
         title: Text(
-          widget.selectedProduct.name,
+          // widget.selectedProduct.name
+          _productDetail == null ? "" : _productDetail.name,
           style: TextStyle(fontWeight: FontWeight.bold, fontSize: 22),
         ),
         shadowColor: Colors.transparent,

@@ -1,21 +1,27 @@
 // import 'dart:html';
 
 import 'dart:async';
+import 'dart:io';
 
 import 'package:badges/badges.dart';
+import 'package:dart_notification_center/dart_notification_center.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 // import 'package:flutter_advanced_networkimage/provider.dart';
 import 'package:toast/toast.dart';
 import 'package:wigg/Dashboard/DashboardViewModel.dart';
 import 'package:wigg/Dashboard/Model/dashboard_model.dart';
+import 'package:wigg/Notification/NotificaitonListView.dart';
 import 'package:wigg/Utils/AppColors.dart';
 import 'package:wigg/Utils/AppImages.dart';
+import 'package:wigg/Utils/AppStrings.dart';
 import 'package:wigg/Utils/CommonFunctions.dart';
 import 'package:wigg/Utils/OnFailure.dart';
 import 'package:wigg/Utils/Preference.dart';
 import 'package:wigg/Utils/StateProvider.dart';
 
 import '../HomeTabController.dart';
+import '../main.dart';
 // import 'package:cached_network_image/cached_network_image.dart';
 
 class DashboardView extends StatefulWidget {
@@ -41,14 +47,41 @@ class _DashboardViewState extends State<DashboardView>  implements StateListener
   String _userFullName = "";
   int _currentIndex = 0;
 
+  String id;
+
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
+
+    DartNotificationCenter.subscribe(channel: AppStrings.updateNotificationCount, observer: this.dashBoardDetails, onNotification: (result) {
+      _dashboardAPI();
+    });
+
+    // if (_keyLoader.currentContext != null){
+    //   Navigator.of(_keyLoader.currentContext, rootNavigator: true).pop();
+    // }
+
     postInit(() {
       _getNameAndImg();
       _dashboardAPI();
     });
+  }
+
+
+  //TODO:- Firebase notification redirection
+
+  Future <void> _showNotification({String title, String body, String payload}) async {
+    const AndroidNotificationDetails androidPlatformChannelSpecifics =
+    AndroidNotificationDetails(
+        '0', 'Wigg', 'your channel description',
+        importance: Importance.max,
+        priority: Priority.high);
+    const NotificationDetails platformChannelSpecifics =
+    NotificationDetails(android: androidPlatformChannelSpecifics);
+    await flutterLocalNotificationsPlugin.show(
+        0, title, body, platformChannelSpecifics,
+        payload: payload);
   }
 
   // TODO: API calling and functions
@@ -135,6 +168,7 @@ class _DashboardViewState extends State<DashboardView>  implements StateListener
       ),
       child: IconButton(icon: Image.asset(AppImages.ic_notificationbell), onPressed: () {
         print("notification");
+        Navigator.push(context, MaterialPageRoute(builder: (context) => NotificationListView()));
       }),
     );
   }

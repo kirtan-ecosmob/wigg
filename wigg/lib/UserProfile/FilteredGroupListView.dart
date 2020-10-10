@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:toast/toast.dart';
+import 'package:wigg/Groups/AddEditGroupView.dart';
 import 'package:wigg/Groups/GroupModelView.dart';
 import 'package:wigg/Groups/Model/group_model.dart';
 import 'package:wigg/Utils/AppColors.dart';
@@ -9,19 +10,18 @@ import 'package:wigg/Utils/AppImages.dart';
 import 'package:wigg/Utils/CommonFunctions.dart';
 import 'package:wigg/Utils/OnFailure.dart';
 
-import '../HomeTabController.dart';
-import 'AddEditGroupView.dart';
+class FilteredGroupListView extends StatefulWidget {
 
-class GroupListView extends StatefulWidget {
-  static String name = '/GroupList';
+  String groupType = "";
 
-  GroupListView({Key key}) : super(key: key);
+  FilteredGroupListView({this.groupType});
 
   @override
-  _GroupListViewState createState() => _GroupListViewState();
+  _FilteredGroupListViewState createState() => _FilteredGroupListViewState();
 }
 
-class _GroupListViewState extends State<GroupListView> {
+class _FilteredGroupListViewState extends State<FilteredGroupListView> {
+
   final GlobalKey<State> _keyLoader = new GlobalKey<State>();
 
   List<GroupData> groupList = [];
@@ -46,12 +46,12 @@ class _GroupListViewState extends State<GroupListView> {
   getGroupList() {
     Dialogs.showLoadingDialog(context, _keyLoader);
     GroupModelView.instance.getGroupList().then(
-      (response) {
+          (response) {
         Navigator.of(_keyLoader.currentContext, rootNavigator: true).pop();
         if (response.code == 200) {
           setState(() {
-            this.groupList = response.groupData;
-            this.filteredGroupList = response.groupData;
+            this.groupList = response.groupData.where((element) => element.type == widget.groupType).toList();
+            this.filteredGroupList = this.groupList;
           });
         } else {
           Toast.show(response.message, context,
@@ -71,10 +71,10 @@ class _GroupListViewState extends State<GroupListView> {
   }
 
   deleteGroup(BuildContext context, String groupId) {
-    // Dialogs.showLoadingDialog(context, _keyLoader);
+    Dialogs.showLoadingDialog(context, _keyLoader);
     GroupModelView.instance.deleteGroup(groupId).then(
           (response) {
-        // Navigator.of(_keyLoader.currentContext, rootNavigator: true).pop();
+        Navigator.of(_keyLoader.currentContext, rootNavigator: true).pop();
         if (response.code == 200) {
           setState(() {
             this.filteredGroupList.removeWhere((element) => element.id.toString() == groupId);
@@ -87,7 +87,7 @@ class _GroupListViewState extends State<GroupListView> {
             duration: Toast.LENGTH_LONG, gravity: Toast.BOTTOM);
       },
       onError: (e) {
-        // Navigator.of(_keyLoader.currentContext, rootNavigator: true).pop();
+        Navigator.of(_keyLoader.currentContext, rootNavigator: true).pop();
         if (e is OnFailure) {
           final res = e;
           Toast.show(res.message, context,
@@ -98,10 +98,11 @@ class _GroupListViewState extends State<GroupListView> {
     );
   }
 
-  // TODO: Custon Functions
+
 
   @override
   Widget build(BuildContext context) {
+
 
     _redirectToAddEdit(bool isEdit, GroupData group){
       Navigator.push(
@@ -147,7 +148,7 @@ class _GroupListViewState extends State<GroupListView> {
                     child: Text(
                       filteredGroupList[index].name,
                       style:
-                          TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                      TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                     ),
                   ),
                 ],
@@ -253,7 +254,7 @@ class _GroupListViewState extends State<GroupListView> {
                   hintText: 'Search...',
                   isDense: true,
                   focusedBorder: UnderlineInputBorder(
-                    borderSide: BorderSide(color: AppColors.appBlueColor)),
+                      borderSide: BorderSide(color: AppColors.appBlueColor)),
                 ),
                 onChanged: (text){
                   setState(() {
@@ -284,6 +285,11 @@ class _GroupListViewState extends State<GroupListView> {
       );
     }
 
+
+
+
+
+
     final mainContainer = Container(
       // color: Colors.pink,
       // height: MediaQuery.of(context).size.height - 100,
@@ -301,26 +307,20 @@ class _GroupListViewState extends State<GroupListView> {
     );
 
 
+
     return Scaffold(
+      // resizeToAvoidBottomPadding: false,
+      backgroundColor: AppColors.appBottleGreenColor,
       appBar: AppBar(
-        title: Text("Address",
-            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 22)),
-        backgroundColor: AppColors.appBottleGreenColor,
+        title: Text(
+          "Address",
+          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 22),
+        ),
         shadowColor: Colors.transparent,
-        actions: [
-          IconButton(
-            icon: Image.asset(AppImages.ic_add_white),
-            onPressed: () {
-              print("add Address");
-              _redirectToAddEdit(false, null);
-            },
-          ),
-        ],
-        leading: CommonFunction.sideMenuBuilder(),
+        backgroundColor: AppColors.appBottleGreenColor,
       ),
-      drawer: navigationDrawer(),
-      backgroundColor: Colors.transparent,
       body: Container(
+        height: MediaQuery.of(context).size.height,
         decoration: BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.only(
@@ -328,6 +328,7 @@ class _GroupListViewState extends State<GroupListView> {
         child: mainContainer,
       ),
     );
+
   }
 
 

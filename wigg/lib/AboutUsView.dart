@@ -12,6 +12,12 @@ import 'Utils/DeviceHeaders.dart';
 import 'Utils/OnFailure.dart';
 
 class AboutUsView extends StatefulWidget {
+
+  String title = "";
+  String getPageFor = "";
+
+  AboutUsView({this.getPageFor, this.title});
+
   @override
   _AboutUsViewState createState() => _AboutUsViewState();
 }
@@ -27,16 +33,16 @@ class _AboutUsViewState extends State<AboutUsView> {
   void initState() {
     super.initState();
     postInit(() {
-      getAboutUs();
+      getPage();
     });
   }
 
 
   // TODO: API calling
 
-  getAboutUs() async {
+  getPage() async {
     Dialogs.showLoadingDialog(context, _keyLoader);
-    final url = WebApi.aboutUs;
+    final url = WebApi.cmsPage + widget.getPageFor;
     print("Url : $url");
     final http.Response response = await http.get(
       url,
@@ -70,7 +76,7 @@ class _AboutUsViewState extends State<AboutUsView> {
     return Scaffold(
       backgroundColor: AppColors.appBottleGreenColor,
       appBar: AppBar(
-        title: Text("About Us",
+        title: Text(widget.title,
             style: TextStyle(fontWeight: FontWeight.bold, fontSize: 22)),
         backgroundColor: AppColors.appBottleGreenColor,
         shadowColor: Colors.transparent,

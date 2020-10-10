@@ -83,6 +83,8 @@ class _AddEditProductViewState extends State<AddEditProductView> {
   String _expiryDate = "";
   String _viewTitle = "Add Product";
 
+  // String _showableDateOfPurchse = "";
+
   List<ProductTab> _tabs = [];
   List<GroupData> groupList = [];
   GroupData selectedGroup;
@@ -257,7 +259,7 @@ class _AddEditProductViewState extends State<AddEditProductView> {
         latitude: _currentPosition == null ? "" : _currentPosition.latitude.toString(),
         longitude: _currentPosition == null ? "" : _currentPosition.longitude.toString(),
         warrantyDate: _expiryDate,
-        purchaseDate: _dateOfPurchase,
+        purchaseDate: formatDate(DateFormat("MM-dd-yyyy").parse(_dateOfPurchase), [yyyy, '-', mm ,'-', dd]),//_dateOfPurchase,
         purchaseFrom: txtStoreUrl.text.trim(),
         productBrand: txtBrand.text.trim(),
         productModel: txtModel.text.trim(),
@@ -356,12 +358,13 @@ class _AddEditProductViewState extends State<AddEditProductView> {
     }
 
     _dateOfPurchase = _productDetail.purchaseDate;
+    // _showableDateOfPurchse = formatDate(DateFormat("yyyy-MM-dd").parse(_productDetail.purchaseDate), [mm, '-', dd ,'-', yyyy]);
 
     _setSelectedGroupAndCategory();
 
 
-    final date1 = new DateFormat("yyyy-MM-dd").parse(_productDetail.expireDate);
-    final date2 = new DateFormat("yyyy-MM-dd").parse(_productDetail.purchaseDate);
+    final date1 = new DateFormat("MM-dd-yyyy").parse(_productDetail.expireDate);
+    final date2 = new DateFormat("MM-dd-yyyy").parse(_productDetail.purchaseDate);
 
     int year = date1.difference(date2).inDays ~/ 365;
     int month = (date1.difference(date2).inDays % 365) ~/ 30;
@@ -548,9 +551,12 @@ class _AddEditProductViewState extends State<AddEditProductView> {
         selectedTextStyle: TextStyle(color: AppColors.appBottleGreenColor),
         onConfirm: (Picker picker, List value) {
           print((picker.adapter as DateTimePickerAdapter).value);
-          print(formatDate((picker.adapter as DateTimePickerAdapter).value, [yyyy, '-', mm, '-', dd]));
+          // print(formatDate((picker.adapter as DateTimePickerAdapter).value, [yyyy, '-', mm, '-', dd]));
+          print(formatDate((picker.adapter as DateTimePickerAdapter).value, [mm, '-', dd ,'-', yyyy]));
           setState(() {
-            _dateOfPurchase = formatDate((picker.adapter as DateTimePickerAdapter).value, [yyyy, '-', mm, '-', dd]);
+            // _dateOfPurchase = formatDate((picker.adapter as DateTimePickerAdapter).value, [yyyy, '-', mm, '-', dd]);
+            _dateOfPurchase = formatDate((picker.adapter as DateTimePickerAdapter).value, [mm, '-', dd ,'-', yyyy]);
+            // _showableDateOfPurchse = formatDate(DateFormat("yyyy-MM-dd").parse(_dateOfPurchase), [mm, '-', dd ,'-', yyyy]);
           });
         }
     ).showDialog(context);
@@ -583,17 +589,17 @@ class _AddEditProductViewState extends State<AddEditProductView> {
     }  else if (_tabs[2].isSelectd){
 
       if (_isValidateProductDetails(context) == null){
-        DateTime date = DateFormat("yyyy-MM-dd").parse(_dateOfPurchase);
+        DateTime date = DateFormat("MM-dd-yyyy").parse(_dateOfPurchase);
         int totalDays = (_selectedYear * 365) + (_selectedMonth * 30);
         _expiryDate = formatDate(date.add(Duration(days: totalDays)), [yyyy, '-', mm, '-', dd]);
-        print(_expiryDate);
+
+        print('purchase date ${formatDate(DateFormat("MM-dd-yyyy").parse(_dateOfPurchase), [yyyy, '-', mm ,'-', dd])}');
+        print('expiry date $_expiryDate');
         print("Done");
+
+
+
         _addEditProductAPI();
-        // if (widget.isEditProduct){
-        //   print("edit product");
-        // }else{
-        //   _addEditProductAPI();
-        // }
       }else{
         print("error");
       }

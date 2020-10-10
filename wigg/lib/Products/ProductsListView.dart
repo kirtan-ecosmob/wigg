@@ -12,8 +12,10 @@ import 'package:wigg/Products/AddEditProductView.dart';
 import 'package:wigg/Products/Model/category_model.dart';
 import 'package:wigg/Products/Model/product_model.dart';
 import 'package:wigg/Products/ProductModelView.dart';
+import 'package:wigg/SubUsers/UsersModelView.dart';
 import 'package:wigg/Utils/AppColors.dart';
 import 'package:wigg/Utils/AppImages.dart';
+import 'package:wigg/Utils/AppStrings.dart';
 import 'package:wigg/Utils/CommonFunctions.dart';
 import 'package:wigg/Utils/OnFailure.dart';
 import 'package:wigg/Utils/Helper.dart';
@@ -44,7 +46,7 @@ class _ProductListViewState extends State<ProductListView> {
       getProductList();
     });
 
-    DartNotificationCenter.subscribe(channel: "updatecategory", observer: this.categoryList, onNotification: (result) {
+    DartNotificationCenter.subscribe(channel: AppStrings.updateCategory, observer: this.categoryList, onNotification: (result) {
       getCategoryList();
     });
 
@@ -314,6 +316,57 @@ class _ProductListViewState extends State<ProductListView> {
       ).toList(),
     );
 
+
+    Widget editButton(int index){
+      return IconSlideAction(
+        iconWidget: Image.asset(AppImages.ic_edit),
+        onTap: () {
+          print("Edit");
+          _redirectToAddEdit(true, productList[index]);
+        },
+      );
+    }
+
+    Widget deleteButton(int index){
+      return IconSlideAction(
+        iconWidget: Image.asset(AppImages.ic_delete),
+        onTap: () {
+          print(productList[index].id);
+          CommonFunction.showAlertDialog(
+              context, "Delete product", "Are you sure you want to delete this product?", (isOk) {
+            if (isOk) {
+              deleteProduct(context, productList[index]);
+            }
+          });
+        },
+      );
+    }
+
+    Widget listViewChild(int index){
+      if (UsersModelView.instance.isParent || UsersModelView.instance.userRole == AppStrings.full_access){
+        return Slidable(
+          actionPane: SlidableDrawerActionPane(),
+          actionExtentRatio: 0.15,
+          secondaryActions: [
+            editButton(index),
+            deleteButton(index),
+          ],
+          child: _userDataContainer(index),
+        );
+      } else if (UsersModelView.instance.userRole == AppStrings.view_and_edit){
+        return Slidable(
+          actionPane: SlidableDrawerActionPane(),
+          actionExtentRatio: 0.15,
+          secondaryActions: [
+            editButton(index),
+          ],
+          child: _userDataContainer(index),
+        );
+      }else{
+        return _userDataContainer(index);
+      }
+    }
+
     Container _productListView() {
       return new Container(
         // height: MediaQuery.of(context).size.height - 375,
@@ -333,29 +386,16 @@ class _ProductListViewState extends State<ProductListView> {
                     MaterialPageRoute(builder: (context) => ProductDetailView(selectedProduct: productList[index],)),
                   );
                 },
-                child: Slidable(
-                  actionPane: SlidableDrawerActionPane(),
-                  actionExtentRatio: 0.15,
-                  secondaryActions: [
-                    IconSlideAction(
-                      // caption: 'More',
-                      // color: Colors.black45,
-                      iconWidget: Image.asset(AppImages.ic_edit),
-                      onTap: () {
-                        print("Edit");
-                        _redirectToAddEdit(true, productList[index]);
-                      },
-                    ),
-                    IconSlideAction(
-                      iconWidget: Image.asset(AppImages.ic_delete),
-                      onTap: () {
-                        print(productList[index].id);
-                        deleteProduct(context, productList[index]);
-                      },
-                    ),
-                  ],
-                  child: _userDataContainer(index),
-                ),
+                child: listViewChild(index),
+                // child: Slidable(
+                //   actionPane: SlidableDrawerActionPane(),
+                //   actionExtentRatio: 0.15,
+                //   secondaryActions: [
+                //     editButton(index),
+                //     deleteButton(index),
+                //   ],
+                //   child: _userDataContainer(index),
+                // ),
               );
             }),
       );
@@ -395,6 +435,20 @@ class _ProductListViewState extends State<ProductListView> {
       ),
     );
 
+    Widget addButton(){
+      if (UsersModelView.instance.isParent || UsersModelView.instance.userRole == AppStrings.full_access){
+        return IconButton(
+          icon: Image.asset(AppImages.ic_add_white),
+          onPressed: () {
+            print("add product");
+            _redirectToAddEdit(false, null);
+          },
+        );
+      }else{
+        return Container();
+      }
+    }
+
 
     return Scaffold(
       appBar: AppBar(
@@ -402,13 +456,7 @@ class _ProductListViewState extends State<ProductListView> {
         backgroundColor: AppColors.appBottleGreenColor,
         shadowColor: Colors.transparent,
         actions: [
-          IconButton(
-            icon: Image.asset(AppImages.ic_add_white),
-            onPressed: () {
-              print("add product");
-              _redirectToAddEdit(false, null);
-            },
-          ),
+          addButton(),
         ],
         leading: CommonFunction.sideMenuBuilder(),
       ),

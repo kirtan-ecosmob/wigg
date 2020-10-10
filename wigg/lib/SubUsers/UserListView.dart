@@ -7,6 +7,7 @@ import 'package:wigg/Authentication/Model/login_model.dart';
 import 'package:wigg/SubUsers/AddSubUser.dart';
 import 'package:wigg/Utils/AppColors.dart';
 import 'package:wigg/Utils/AppImages.dart';
+import 'package:wigg/Utils/AppStrings.dart';
 import 'package:wigg/Utils/CommonFunctions.dart';
 import 'package:wigg/Utils/OnFailure.dart';
 
@@ -96,7 +97,7 @@ class _UserListViewState extends State<UserListView> {
   }
 
   Container userProfile(String img) {
-    if (img == null) {
+    if (img == null || img == "") {
       return Container(
         child: CircleAvatar(
           backgroundColor: Colors.transparent,
@@ -230,6 +231,62 @@ class _UserListViewState extends State<UserListView> {
     //   },
     // );
 
+    Widget editButton(int index){
+      return IconSlideAction(
+        // caption: 'More',
+        // color: Colors.black45,
+        iconWidget: Image.asset(AppImages.ic_edit),
+        onTap: () {
+          print("Edit");
+          _redirectToAddEdit(true, filteredUserList[index]);
+        },
+      );
+    }
+
+    Widget deleteButton(int index){
+      return IconSlideAction(
+        // caption: 'Delete',
+        // color: Colors.red,
+        iconWidget: Image.asset(AppImages.ic_delete),
+        onTap: () {
+          print(filteredUserList[index].id);
+          CommonFunction.showAlertDialog(
+              context, "Delete user", "Are you sure you want to delete this user?", (isOk) {
+            if (isOk) {
+              txtSearch.text = "";
+              isSearchActive = false;
+              deleteUser(context, filteredUserList[index]);
+            }
+          });
+        },
+      );
+    }
+
+    Widget listViewChild(int index){
+      if (UsersModelView.instance.isParent || UsersModelView.instance.userRole == AppStrings.full_access){
+        return Slidable(
+          actionPane: SlidableDrawerActionPane(),
+          actionExtentRatio: 0.15,
+          secondaryActions: [
+            editButton(index),
+            deleteButton(index),
+          ],
+          child: _userDataContainer(index),
+        );
+      // } else if (UsersModelView.instance.userRole == AppStrings.view_and_edit){
+      //   return Slidable(
+      //     actionPane: SlidableDrawerActionPane(),
+      //     actionExtentRatio: 0.15,
+      //     secondaryActions: [
+      //       editButton(index),
+      //     ],
+      //     child: _userDataContainer(index),
+      //   );
+      }else{
+        return _userDataContainer(index);
+      }
+    }
+
     Container _userListView() {
       return new Container(
         height: MediaQuery.of(context).size.height - 320,
@@ -239,37 +296,11 @@ class _UserListViewState extends State<UserListView> {
             shrinkWrap: false,
             itemCount: filteredUserList.length,
             itemBuilder: (ctx, index) {
-              return Slidable(
-                actionPane: SlidableDrawerActionPane(),
-                actionExtentRatio: 0.15,
-                secondaryActions: [
-                  IconSlideAction(
-                    // caption: 'More',
-                    // color: Colors.black45,
-                    iconWidget: Image.asset(AppImages.ic_edit),
-                    onTap: () {
-                      print("Edit");
-                      _redirectToAddEdit(true, filteredUserList[index]);
-                    },
-                  ),
-                  IconSlideAction(
-                    // caption: 'Delete',
-                    // color: Colors.red,
-                    iconWidget: Image.asset(AppImages.ic_delete),
-                    onTap: () {
-                      print(filteredUserList[index].id);
-                      CommonFunction.showAlertDialog(
-                          context, "Delete user", "Are you sure you want to delete this user?", (isOk) {
-                        if (isOk) {
-                          txtSearch.text = "";
-                          isSearchActive = false;
-                          deleteUser(context, filteredUserList[index]);
-                        }
-                      });
-                    },
-                  ),
-                ],
-                child: _userDataContainer(index),
+              return GestureDetector(
+                onTap: () {
+                  print(userList[index].id);
+                },
+                child: listViewChild(index),
               );
             }),
       );
@@ -338,6 +369,25 @@ class _UserListViewState extends State<UserListView> {
       ),
     );
 
+
+    Widget addButton(){
+      if (UsersModelView.instance.isParent || UsersModelView.instance.userRole == AppStrings.full_access){
+        return IconButton(
+          icon: Image.asset(AppImages.ic_add_white),
+          onPressed: () {
+            print("add sub user");
+            if (userList.length >= 8){
+              showAlertDialog(context, "Max Limit Reached", "You can add only 8 sub users.");
+            }else{
+              _redirectToAddEdit(false, null);
+            }
+          },
+        );
+      }else{
+        return Container();
+      }
+    }
+
     return Scaffold(
       appBar: AppBar(
         title: Text("Users",
@@ -345,18 +395,7 @@ class _UserListViewState extends State<UserListView> {
         backgroundColor: AppColors.appBottleGreenColor,
         shadowColor: Colors.transparent,
         actions: [
-          IconButton(
-            icon: Image.asset(AppImages.ic_add_white),
-            onPressed: () {
-              print("add sub user");
-
-              if (userList.length >= 8){
-                showAlertDialog(context, "Max Limit Reached", "You can add only 8 sub users.");
-              }else{
-                _redirectToAddEdit(false, null);
-              }
-            },
-          ),
+          addButton(),
         ],
         leading: CommonFunction.sideMenuBuilder(),
       ),

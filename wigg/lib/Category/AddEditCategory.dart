@@ -5,6 +5,7 @@ import 'package:toast/toast.dart';
 import 'package:wigg/Products/Model/category_model.dart';
 import 'package:wigg/Products/ProductModelView.dart';
 import 'package:wigg/Utils/AppColors.dart';
+import 'package:wigg/Utils/AppStrings.dart';
 import 'package:wigg/Utils/CommonFunctions.dart';
 import 'package:wigg/Utils/OnFailure.dart';
 
@@ -44,7 +45,7 @@ class _AddEditCategoryViewState extends State<AddEditCategoryView> {
           (response) {
         Navigator.of(_keyLoader.currentContext, rootNavigator: true).pop();
         if (response.code == 200) {
-          DartNotificationCenter.post(channel: "updatecategory");
+          DartNotificationCenter.post(channel: AppStrings.updateCategory);
           Navigator.of(context).pop(true);
           Toast.show(response.message, context,
               duration: Toast.LENGTH_LONG, gravity: Toast.BOTTOM);

@@ -10,14 +10,19 @@ import 'package:image_picker/image_picker.dart';
 import 'package:toast/toast.dart';
 import 'package:wigg/Authentication/LoginViewModel.dart';
 import 'package:wigg/Authentication/Model/login_model.dart';
+import 'package:wigg/Groups/AddEditGroupView.dart';
+import 'package:wigg/SubUsers/AddSubUser.dart';
+import 'package:wigg/SubUsers/Model/users_model.dart';
 import 'package:wigg/SubUsers/UsersModelView.dart';
 import 'package:wigg/Utils/AppColors.dart';
 import 'package:wigg/Utils/AppImages.dart';
+import 'package:wigg/Utils/AppStrings.dart';
 import 'package:wigg/Utils/OnFailure.dart';
 import 'package:wigg/Utils/Preference.dart';
 import 'package:wigg/Utils/CommonFunctions.dart';
 
 import '../HomeTabController.dart';
+import 'FilteredGroupListView.dart';
 
 class MyProfileView extends StatefulWidget {
   static String name = '/MyProfile';
@@ -31,6 +36,7 @@ class _MyProfileViewState extends State<MyProfileView> {
   String _profilePic = "";
   String _userFullName = "";
   String _mobileNumber = "";
+  List<SubUsersData> userList = [];
 
   UserData userProfileDetails;
 
@@ -51,6 +57,7 @@ class _MyProfileViewState extends State<MyProfileView> {
 
     postInit(() {
       _getUserProfile();
+      _getSubUserList();
     });
   }
 
@@ -82,35 +89,92 @@ class _MyProfileViewState extends State<MyProfileView> {
         }
       },
     );
+  }
 
-    // getProfileImage().then(
-    //   (value) {
-    //     setState(() {
-    //       this._profilePic = value;
-    //     });
-    //   },
-    // );
-    // getFullname().then((value) {
-    //   setState(() {
-    //     this._userFullName = value;
-    //   });
-    // });
-    // getMobileNumber().then((value) {
-    //   setState(() {
-    //     this._mobileNumber = value;
-    //   });
-    // });
+  _getSubUserList() {
+    this.userList = [];
+    UsersModelView.instance.getSubUserList().then(
+          (response) {
+        // Navigator.of(_keyLoader.currentContext, rootNavigator: true).pop();
+        if (response.code == 200) {
+          setState(() {
+            this.userList = response.subUserData;
+          });
+        } else {
+          Toast.show(response.message, context,
+              duration: Toast.LENGTH_LONG, gravity: Toast.BOTTOM);
+        }
+      },
+      onError: (e) {
+        // Navigator.of(_keyLoader.currentContext, rootNavigator: true).pop();
+        if (e is OnFailure) {
+          final res = e;
+          Toast.show(res.message, context,
+              duration: Toast.LENGTH_LONG, gravity: Toast.BOTTOM);
+          CommonFunction.redirectToLogin(context, e);
+        }
+      },
+    );
   }
 
   // TODO: Custom Functions
+
+  Container userProfile(String img) {
+    if (img == null || img == "") {
+      return Container(
+        child: CircleAvatar(
+          backgroundColor: Colors.transparent,
+          backgroundImage: AssetImage(AppImages.user_placeholder),
+          radius: 20,
+        ),
+      );
+    } else {
+      return Container(
+        height: 40,
+        width: 40,
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(20),
+          child: Image.network(
+            img,
+            fit: BoxFit.cover,
+          ),
+        ),
+      );
+    }
+  }
+
+  showAlertDialog(BuildContext context, String title, String message) {
+    // set up the button
+    Widget okButton = FlatButton(
+      child: Text("OK"),
+      onPressed: () {Navigator.of(context).pop();},
+    );
+
+    // set up the AlertDialog
+    AlertDialog alert = AlertDialog(
+      title: Text(title),
+      content: Text(message),
+      actions: [
+        okButton,
+      ],
+    );
+
+    // show the dialog
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return alert;
+      },
+    );
+  }
 
   Widget buildSubUserData(String name, String image, double height,
       {bool isRounded = true}) {
     return Column(
       children: [
         Container(
-          // height: 35,
-          // width: 35,
+          // height: 50,
+          // width: 50,
           padding: const EdgeInsets.all(8),
           child: Container(
             height: height,
@@ -119,16 +183,18 @@ class _MyProfileViewState extends State<MyProfileView> {
               borderRadius: isRounded
                   ? BorderRadius.circular(height / 2)
                   : BorderRadius.circular(0),
-              image: DecorationImage(
-                image: AssetImage(image),
-                fit: BoxFit.cover,
-              ),
             ),
+            child: userProfile(image),
           ),
         ),
-        Text(
-          name,
-          style: TextStyle(fontSize: 12),
+        Expanded(
+          child: Text(
+            name,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(fontSize: 12,),
+            textAlign: TextAlign.center,
+          ),
         ),
       ],
     );
@@ -275,62 +341,12 @@ class _MyProfileViewState extends State<MyProfileView> {
   Widget build(BuildContext context) {
     String _error = 'No Error Dectected';
 
-    // Future<void> loadAssets() async {
-    //   List<Asset> resultList = List<Asset>();
-    //   String error = 'No Error Dectected';
-    //
-    //   try {
-    //     resultList = await MultiImagePicker.pickImages(
-    //       maxImages: 1,
-    //       enableCamera: true,
-    //       selectedAssets: images,
-    //       cupertinoOptions: CupertinoOptions(takePhotoIcon: "chat"),
-    //       materialOptions: MaterialOptions(
-    //         actionBarColor: "#abcdef",
-    //         actionBarTitle: "Example App",
-    //         allViewTitle: "All Photos",
-    //         useDetailsView: false,
-    //         selectCircleStrokeColor: "#000000",
-    //       ),
-    //     );
-    //   } on Exception catch (e) {
-    //     error = e.toString();
-    //   }
-    //
-    //   // If the widget was removed from the tree while the asynchronous platform
-    //   // message was in flight, we want to discard the reply rather than calling
-    //   // setState to update our non-existent appearance.
-    //   if (!mounted) return;
-    //
-    //   setState(() {
-    //     images = resultList;
-    //     _profileImg = images.first;
-    //     _error = error;
-    //     isProfileImgChange = true;
-    //     print(_profileImg.identifier);
-    //     _updateProfilePicAPI();
-    //   });
-    // }
-
-    // final subUserProfilePlaceHolder = CircleAvatar(
-    //   backgroundColor: Colors.transparent,
-    //   backgroundImage: AssetImage(AppImages.ic_subuser_placeholder),
-    //   radius: 18,
-    // );
-
     final userProfilePlaceHolder = CircleAvatar(
       backgroundColor: Colors.transparent,
       backgroundImage: AssetImage(AppImages.user_placeholder),
       radius: 80,
     );
 
-    // final userImage = CachedNetworkImage(
-    //   imageUrl: _profilePic,
-    //   imageBuilder: (context, image) => CircleAvatar(
-    //     backgroundImage: image,
-    //     radius: 80,
-    //   ),
-    // );
 
     final userImage = ClipRRect(
       borderRadius: BorderRadius.circular(80),
@@ -347,7 +363,7 @@ class _MyProfileViewState extends State<MyProfileView> {
           height: 75,
           width: MediaQuery.of(context).size.width - 85,
           child: GridView.count(
-            childAspectRatio: 3 / 2,
+            childAspectRatio: 1.25,
             primary: false,
             // padding: const EdgeInsets.all(20),
             // crossAxisSpacing: 10,
@@ -355,9 +371,50 @@ class _MyProfileViewState extends State<MyProfileView> {
             crossAxisCount: 1,
             scrollDirection: Axis.horizontal,
             children: <Widget>[
-              buildSubUserData("Home", AppImages.ic_home, 25, isRounded: false),
-              buildSubUserData("Office", AppImages.ic_office, 25,
-                  isRounded: false),
+              Column(
+                children: [
+                  Container(
+                    height: 45,
+                    // width: 50,
+                    // color: Colors.black,
+                    child: IconButton(
+                        icon: Image.asset(AppImages.ic_home),
+                        onPressed: () {
+                          print("home");
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (context) => FilteredGroupListView(groupType: "non-commercial")),
+                          );
+                        }),
+                  ),
+                  Text(
+                    "Home",
+                  style: TextStyle(fontSize: 12),),
+                ],
+              ),
+
+              Column(
+                children: [
+                  Container(
+                    height: 45,
+                    // width: 50,
+                    // color: Colors.black,
+                    child: IconButton(
+                        icon: Image.asset(AppImages.ic_office),
+                        onPressed: () {
+                          print("office");
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (context) => FilteredGroupListView(groupType: "commercial")),
+                          );
+                        }),
+                  ),
+                  Text(
+                    "Office",
+                    style: TextStyle(fontSize: 12),),
+                ],
+              ),
+
             ],
           ),
         ),
@@ -370,6 +427,10 @@ class _MyProfileViewState extends State<MyProfileView> {
               icon: Image.asset(AppImages.ic_add),
               onPressed: () {
                 print("Add address");
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => AddEditGroupView()),
+                );
               }),
         ),
       ],
@@ -421,6 +482,66 @@ class _MyProfileViewState extends State<MyProfileView> {
       ],
     );
 
+
+    Widget addUserButton(){
+      if (UsersModelView.instance.isParent || UsersModelView.instance.userRole == AppStrings.full_access){
+        return Container(
+          height: 40,
+          width: 40,
+          // color: Colors.black,
+          child: IconButton(
+              icon: Image.asset(AppImages.ic_add),
+              onPressed: () {
+                print("Add sub user");
+                if (userList.length >= 8){
+                  showAlertDialog(context, "Max Limit Reached", "You can add only 8 sub users.");
+                }else{
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => AddSubUserView()),
+                  );
+                }
+              }),
+        );
+      }else{
+        return Container();
+      }
+    }
+
+    Widget _sharedUserGrid(){
+      return Container(
+        child: Row(
+          mainAxisAlignment: (MainAxisAlignment.spaceBetween),
+          children: [
+            Container(
+              height: 75,
+              width: (UsersModelView.instance.isParent || UsersModelView.instance.userRole == AppStrings.full_access) ? MediaQuery.of(context).size.width - 85 : MediaQuery.of(context).size.width - 40,
+              child: this.userList.length == 0 ? Container() : GridView.builder(
+                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 1),
+                  primary: false,
+                  itemCount: this.userList.length,
+                  // padding: const EdgeInsets.all(20),
+                  // crossAxisSpacing: 10,
+                  // mainAxisSpacing: 10,
+                  scrollDirection: Axis.horizontal,
+                  itemBuilder: (ctx, index) {
+                    return GestureDetector(
+                      onTap: () {
+                        print(userList[index].id);
+                      },
+                      child: buildSubUserData(userList[index].name, userList[index].profilePic, 40),
+                      // child: listViewChild(index),
+                    );
+                  }),
+
+            ),
+            // Container(height: 50, width: 50, color: Colors.black,),
+            addUserButton(),
+          ],
+        ),
+      );
+    }
+
     final mainContainer = Container(
       // height: 1000,
       width: MediaQuery.of(context).size.width,
@@ -448,40 +569,7 @@ class _MyProfileViewState extends State<MyProfileView> {
           SizedBox(
             height: 15,
           ),
-          Row(
-            mainAxisAlignment: (MainAxisAlignment.spaceBetween),
-            children: [
-              Container(
-                height: 75,
-                width: MediaQuery.of(context).size.width - 85,
-                child: GridView.count(
-                  primary: false,
-                  // padding: const EdgeInsets.all(20),
-                  // crossAxisSpacing: 10,
-                  // mainAxisSpacing: 10,
-                  crossAxisCount: 1,
-                  scrollDirection: Axis.horizontal,
-                  children: <Widget>[
-                    buildSubUserData(
-                        "John Doe", AppImages.ic_subuser_placeholder, 40),
-                    buildSubUserData("Jon Smith", AppImages.profile, 40),
-                    buildSubUserData("abc", AppImages.app_bg, 40),
-                  ],
-                ),
-              ),
-              // Container(height: 50, width: 50, color: Colors.black,),
-              Container(
-                height: 40,
-                width: 40,
-                // color: Colors.black,
-                child: IconButton(
-                    icon: Image.asset(AppImages.ic_add),
-                    onPressed: () {
-                      print("Add sub user");
-                    }),
-              ),
-            ],
-          ),
+          _sharedUserGrid(),
           SizedBox(
             height: 30,
           ),

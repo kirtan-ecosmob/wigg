@@ -24,6 +24,7 @@ class UsersModelView{
   static UsersModelView get instance => _singleton;
 
   var userRole = "";
+  bool isParent = false;
 
 
   Future<UsersModel> getSubUserList() async {

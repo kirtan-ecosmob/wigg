@@ -27,5 +27,7 @@ class AppStrings {
   static const String view_and_edit = "view_and_edit";
   static const String share_only = "share_only";
 
+  static const String updateCategory = "updateCategory";
+  static const String updateNotificationCount = "updateNotificationCount";
 
 }

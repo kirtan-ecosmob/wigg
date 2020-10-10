@@ -1,21 +1,27 @@
 // import 'package:cached_network_image/cached_network_image.dart';
+import 'dart:async';
+import 'dart:developer';
+import 'dart:io';
+
 import 'package:badges/badges.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:wigg/AboutUsView.dart';
 import 'package:wigg/Category/CategoryListView.dart';
 import 'package:wigg/Dashboard/DashboardView.dart';
 import 'package:wigg/Groups/GroupListView.dart';
 import 'package:wigg/Products/ProductsListView.dart';
 import 'package:wigg/SettingView.dart';
-import 'package:wigg/SubUsers/AddSubUser.dart';
 import 'package:wigg/SubmitTicket/SubmitTicketView.dart';
 import 'package:wigg/UserProfile/EditMyProfileView.dart';
 import 'package:wigg/UserProfile/MyProfileView.dart';
 
 import 'Authentication/LoginView.dart';
 import 'Authentication/LoginViewModel.dart';
-import 'ContactUsView.dart';
+import 'Products/Model/product_model.dart';
+import 'Products/ProductDetailView.dart';
 import 'SubUsers/UserListView.dart';
 import 'Utils/AppColors.dart';
 import 'Utils/AppFonts.dart';
@@ -23,9 +29,8 @@ import 'Utils/AppImages.dart';
 import 'Utils/Preference.dart';
 import 'package:wigg/Utils/CommonFunctions.dart';
 
-import 'Utils/StateProvider.dart';
 
-
+import 'package:wigg/main.dart';
 
 
 
@@ -45,6 +50,10 @@ class _HomeTabBarControllerState extends State<HomeTabBarController> {
   int _currentIndex = 0;
   // String _notificationCount = "";
 
+  // final FirebaseMessaging _firebaseMessaging = FirebaseMessaging();
+  String id;
+  static final Map<String, Route<void>> routes = <String, Route<void>>{};
+  bool isFromLaunch = false;
 
   // _HomeTabBarControllerState(){
   //   var stateProvider = new StateProvider();
@@ -57,10 +66,92 @@ class _HomeTabBarControllerState extends State<HomeTabBarController> {
     super.initState();
     // var stateProvider = new StateProvider();
     // stateProvider.subscribe(this);
+    _firebaseConfig();
+    _configureSelectNotificationSubject();
     setState(() {
       _currentIndex = widget.index;
     });
 
+
+
+  }
+
+
+  //TODO:- Firebase notification redirection
+
+  _firebaseConfig() {
+    firebaseMessaging.configure(
+      onMessage: (Map<String, dynamic> message) async {
+        print("onMessage: $message");
+
+        if (Platform.isAndroid) {
+          id = message['data']['id'];
+          _showNotification(
+              title: message['notification']['title'],
+              body: message['notification']['body'],
+              payload: message['data']['type']);
+        } else if (Platform.isIOS) {
+          id = message['id'];
+          _showNotification(
+              title: message['aps']['alert']['title'],
+              body: message['aps']['alert']['body'],
+              payload: message['type']);
+        }
+      },
+      onLaunch: (Map<String, dynamic> message) async {
+        log("onLaunch: $message");
+        // _navigateToItemDetail(message['type']);
+        isFromLaunch = true;
+
+        if (Platform.isAndroid) {
+          id = message['data']['id'];
+          selectNotificationSubject.add(message['data']['type']);
+        } else if (Platform.isIOS) {
+          id = message['id'];
+          selectNotificationSubject.add(message['type']);
+        }
+
+      },
+      onResume: (Map<String, dynamic> message) async {
+        log("onResume: $message");
+        if (Platform.isAndroid) {
+          id = message['data']['id'];
+          selectNotificationSubject.add(message['data']['type']);
+        } else if (Platform.isIOS) {
+          id = message['id'];
+          selectNotificationSubject.add(message['type']);
+        }
+        // _navigateToItemDetail(message['type']);
+      },
+      onBackgroundMessage: myBackgroundMessageHandler,
+
+    );
+  }
+
+  // void _navigateToItemDetail(String payload) {
+  //   print(payload);
+  //   if ((payload == "purchase" || payload == "warranty") && id != null){
+  //     print('payload $payload id $id');
+  //     Product tempProduct = Product(id: int.parse(id));
+  //
+  //     Navigator.push(
+  //       context,
+  //       MaterialPageRoute(builder: (context) => ProductDetailView(selectedProduct: tempProduct,)),
+  //     );
+  //   }
+  // }
+
+  Future <void> _showNotification({String title, String body, String payload}) async {
+    const AndroidNotificationDetails androidPlatformChannelSpecifics =
+    AndroidNotificationDetails(
+        '0', 'Wigg', 'your channel description',
+        importance: Importance.max,
+        priority: Priority.high);
+    const NotificationDetails platformChannelSpecifics =
+    NotificationDetails(android: androidPlatformChannelSpecifics);
+    await flutterLocalNotificationsPlugin.show(
+        0, title, body, platformChannelSpecifics,
+        payload: payload);
   }
 
 
@@ -79,6 +170,65 @@ class _HomeTabBarControllerState extends State<HomeTabBarController> {
       return new Text('$text');
     }
   }
+
+
+  Future<void> _configureSelectNotificationSubject() async {
+    selectNotificationSubject.stream.listen((String payload) async {
+
+      if ((payload.toLowerCase() == "purchase" || payload.toLowerCase() == "warranty" || payload.toLowerCase() == "product" ) && id != null){
+        print('payload $payload id $id');
+        Product tempProduct = Product(id: int.parse(id));
+
+        routes.putIfAbsent(
+          DashboardView.name,
+              () =>
+              MaterialPageRoute<void>(
+                settings: RouteSettings(name: DashboardView.name),
+                builder: (BuildContext context) => DashboardView(),
+              ),
+        );
+
+        // Navigator.popUntil(context, (Route<dynamic> route) {
+        //   Navigator.push(
+        //     context,
+        //     MaterialPageRoute(builder: (context) => ProductDetailView(selectedProduct: tempProduct, isFromNotification: true,)),
+        //   );
+        //   return true;
+        // });
+
+        if (isFromLaunch){
+          Timer(Duration(seconds: 2), (){
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => ProductDetailView(selectedProduct: tempProduct, isFromNotification: true,)),
+            );
+          });
+          isFromLaunch = false;
+        }else{
+          await Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => ProductDetailView(selectedProduct: tempProduct, isFromNotification: true,)),
+          );
+        }
+
+
+
+        // await Navigator.push(
+        //   context,
+        //   MaterialPageRoute<void>(
+        //       builder: (BuildContext context) => ProductDetailView(selectedProduct: tempProduct, isFromNotification: true,)),
+        // );
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    selectNotificationSubject.close();
+    super.dispose();
+  }
+
+  //---//
 
   @override
   Widget build(BuildContext context) {
@@ -224,6 +374,40 @@ class _navigationDrawerState extends State<navigationDrawer> {
     );
   }
 
+  showAlertDialog(BuildContext context, String title, String message) {
+    // set up the button
+    Widget okButton = FlatButton(
+      child: Text("OK"),
+      onPressed: () {
+        Navigator.of(context).pop();
+        _logoutAPI(context);
+      },
+    );
+
+    Widget cancelButton = FlatButton(
+      child: Text("CANCEL"),
+      onPressed: () {Navigator.of(context).pop();},
+    );
+
+    // set up the AlertDialog
+    AlertDialog alert = AlertDialog(
+      title: Text(title),
+      content: Text(message),
+      actions: [
+        cancelButton,
+        okButton,
+      ],
+    );
+
+    // show the dialog
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return alert;
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
 
@@ -358,11 +542,11 @@ class _navigationDrawerState extends State<navigationDrawer> {
         createDrawerBodyItem(icon: AppImages.ic_Dot, text: 'Submit Ticket',
         onTap: (){
           print("Submit ticket");
-          // Navigator.of(context).pop();
-          // Navigator.push(
-          //   context,
-          //   MaterialPageRoute(builder: (context) => SubmitTicketView()),
-          // );
+          Navigator.of(context).pop();
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => SubmitTicketView()),
+          );
         }),
         createDrawerBodyItem(icon: AppImages.ic_Dot, text: 'My Group/Address',
         onTap: () {
@@ -376,13 +560,20 @@ class _navigationDrawerState extends State<navigationDrawer> {
         }),
         createDrawerBodyItem(icon: AppImages.ic_Dot, text: 'About us',
             onTap: (){
-              // Navigator.of(context).pop();
-              // Navigator.push(
-              //   context,
-              //   MaterialPageRoute(builder: (context) => AboutUsView()),
-              // );
+              Navigator.of(context).pop();
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => AboutUsView(getPageFor: "about", title: 'About us',)),
+              );
             }),
-        createDrawerBodyItem(icon: AppImages.ic_Dot, text: 'Privacy Policy'),
+        createDrawerBodyItem(icon: AppImages.ic_Dot, text: 'Privacy Policy',
+        onTap: (){
+          Navigator.of(context).pop();
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => AboutUsView(getPageFor: "privacy_policy", title: 'Privacy Policy',)),
+          );
+        }),
         createDrawerBodyItem(icon: AppImages.ic_Dot, text: 'Setting',
             onTap: (){
               Navigator.of(context).pop();
@@ -396,8 +587,12 @@ class _navigationDrawerState extends State<navigationDrawer> {
               Navigator.of(context).pop();
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => ContactUsView()),
+                MaterialPageRoute(builder: (context) => AboutUsView(getPageFor: "contact", title: "Contact Us",)),
               );
+              // Navigator.push(
+              //   context,
+              //   MaterialPageRoute(builder: (context) => ContactUsView()),
+              // );
             }),
         SizedBox(height: 30,),
       ],
@@ -425,6 +620,11 @@ class _navigationDrawerState extends State<navigationDrawer> {
         ),
         color: AppColors.appYellowColor,
         onPressed: () {
+          // Navigator.of(context).pop();
+          // _logoutAPI(context);
+
+          // showAlertDialog(context, "Logout", "Are you sure you want to logout?");
+
           CommonFunction.showAlertDialog(
               context, "Logout", "Are you sure you want to logout?", (isOk) {
             if (isOk) {

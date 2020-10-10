@@ -370,6 +370,7 @@ class _ProductListForUserViewState extends State<ProductListForUserView> {
 
     Container _productListView() {
       return new Container(
+        padding: EdgeInsets.only(left: 20, right: 20),
         child: ListView.builder(
             scrollDirection: Axis.vertical,
             shrinkWrap: true,
@@ -415,11 +416,17 @@ class _ProductListForUserViewState extends State<ProductListForUserView> {
       return Stack(
         children: [
           Container(
-            height: MediaQuery.of(context).size.height - 300,
+            height: MediaQuery.of(context).size.height - 100,
           ),
-          Container(
-            padding: EdgeInsets.only(left: 20, right: 20),
-            child: _productListView(),
+          SingleChildScrollView(
+            // physics: const AlwaysScrollableScrollPhysics(),
+            child: Column(
+              children: [
+                titleAndFilter,
+                SizedBox(height: 10,),
+                _productListView(),
+              ],
+            ),
           ),
           new Positioned(
             right: 0,
@@ -428,17 +435,9 @@ class _ProductListForUserViewState extends State<ProductListForUserView> {
               child: YellowThemeButton(
                 btnName: "Share",
                 onPressed: () {
-
                   selectedProduct = productList.where((element) => element.isSelected).toList().map((e) => e.id.toString()).toList();
                   print(selectedProduct);
-
                   _addEditSubuser();
-
-
-
-                  // if (_isValidate(context) == null){
-                  //   _addEditCategory();
-                  // }
                 },
               ),
             ),
@@ -447,14 +446,15 @@ class _ProductListForUserViewState extends State<ProductListForUserView> {
       );
     }
 
-    final mainContainer = Container(
-      child: Column(
-        children: [
-          titleAndFilter,
-          stackView(),
-        ],
-      ),
-    );
+    // final mainContainer = Container(
+    //   child: Column(
+    //     children: [
+    //       titleAndFilter,
+    //       SizedBox(height: 10,),
+    //       _productListView(),
+    //     ],
+    //   ),
+    // );
 
 
     return Scaffold(
@@ -470,7 +470,7 @@ class _ProductListForUserViewState extends State<ProductListForUserView> {
             color: Colors.white,
             borderRadius: BorderRadius.only(
                 topLeft: Radius.circular(40), topRight: Radius.circular(40))),
-        child: mainContainer,
+        child: stackView(),
       ),
     );
   }
